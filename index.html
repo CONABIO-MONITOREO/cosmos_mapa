@@ -26,6 +26,27 @@
   .panel h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #555; }
   .panel label { display: block; cursor: pointer; padding: 2px 0; }
   .panel label input { margin-right: 6px; }
+  /* Collapsible panel chrome (consultant zoom, etc.) */
+  .panel .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .panel .panel-header h4 { margin: 0 0 6px; }
+  .panel .panel-toggle {
+    background: none;
+    border: none;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px 6px;
+    color: #555;
+  }
+  .panel .panel-toggle:hover { color: #000; }
+  .panel.collapsed .panel-body { display: none; }
+  .panel.collapsed .panel-header h4 { margin-bottom: 0; }
+  .panel.collapsed .panel-toggle { padding-bottom: 0; }
 
   /* ---------- Left tools panel ---------- */
   #tools {
@@ -49,19 +70,57 @@
     position: absolute;
     bottom: 96px;
     left: 12px;
-    z-index: 801;
-    width: 28px;
-    height: 28px;
+    z-index: 1001;
+    width: 32px;
+    height: 32px;
     background: #fff;
     border: 1px solid rgba(0, 0, 0, 0.25);
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
-    transition: left 0.18s ease;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: left 0.18s ease, background 0.15s ease;
   }
+  #tools-toggle:hover { background: #f4f4f4; }
   #tools:not(.collapsed) + #tools-toggle { left: 300px; }
+
+  /* Modal backdrop — only active on mobile when the tools panel is shown. */
+  #tools-backdrop {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 900;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  body.tools-modal #tools-backdrop { display: block; opacity: 1; }
+
+  /* Mobile: collapse-by-default + modal display for the left panel. */
+  @media (max-width: 700px), (pointer: coarse) and (max-width: 900px) {
+    #tools {
+      bottom: auto;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(92vw, 360px);
+      max-height: 80vh;
+      z-index: 950;
+    }
+    #tools.collapsed {
+      transform: translate(-50%, -50%) scale(0.9);
+      opacity: 0;
+      pointer-events: none;
+    }
+    #tools-body { max-height: calc(80vh - 24px); }
+    /* Keep the toggle anchored to the bottom-left regardless of panel state. */
+    #tools:not(.collapsed) + #tools-toggle { left: 12px; }
+  }
   #tools-body { padding: 12px 14px 14px; max-height: calc(100vh - 240px); overflow-y: auto; }
   #tools h3 {
     margin: 0 0 4px;
@@ -246,7 +305,10 @@
     </div>
   </div>
 </div>
-<button id="tools-toggle" type="button" title="Mostrar/ocultar panel">‹</button>
+<button id="tools-toggle" type="button"
+        title="Panel de herramientas — Recursos, descargas dinámicas y GeoPDF por nodo"
+        aria-label="Abrir panel de herramientas">⚙</button>
+<div id="tools-backdrop"></div>
 
 <div id="watermark">
   <img src="static/images/CoSMoS_logo.png" alt="CoSMoS" />
@@ -484,7 +546,7 @@ L.control.layers(
     "Buffers 60 m": bufferLayer,
     "Etiquetas de nodo": labelToggleLayer,
   },
-  { position: "topright", collapsed: false }
+  { position: "topright", collapsed: true }
 ).addTo(map);
 
 clusterOutlineLayer.addTo(map);
@@ -544,18 +606,29 @@ consultants.forEach((c) => {
   consultantBounds[c] = sub.getBounds();
 });
 
+// ---------- Mobile detection ----------
+// Treat the client as "phone-like" when the viewport is narrow OR the primary
+// pointer is coarse (touch). Thresholds mirror the CSS media query.
+const IS_MOBILE =
+  window.matchMedia("(max-width: 700px)").matches ||
+  window.matchMedia("(pointer: coarse) and (max-width: 900px)").matches;
+
 const ConsultantControl = L.Control.extend({
   options: { position: "topright" },
   onAdd() {
-    const div = L.DomUtil.create("div", "panel");
+    const div = L.DomUtil.create("div", "panel panel-consultant");
     L.DomEvent.disableClickPropagation(div);
     L.DomEvent.disableScrollPropagation(div);
-    let html = '<h4>Zoom por consultor</h4>';
-    html += `<label><input type="radio" name="consultant" value="__all__" checked> todos</label>`;
+    let body = `<label><input type="radio" name="consultant" value="__all__" checked> todos</label>`;
     consultants.forEach((c) => {
-      html += `<label><input type="radio" name="consultant" value="${c}"> ${c}</label>`;
+      body += `<label><input type="radio" name="consultant" value="${c}"> ${c}</label>`;
     });
-    div.innerHTML = html;
+    div.innerHTML =
+      `<div class="panel-header">` +
+        `<h4>Zoom por consultor</h4>` +
+        `<button class="panel-toggle" type="button" title="Mostrar/ocultar" aria-label="Mostrar/ocultar">−</button>` +
+      `</div>` +
+      `<div class="panel-body">${body}</div>`;
     div.querySelectorAll('input[name="consultant"]').forEach((inp) => {
       inp.addEventListener("change", (e) => {
         const v = e.target.value;
@@ -563,6 +636,15 @@ const ConsultantControl = L.Control.extend({
         else map.fitBounds(consultantBounds[v], { padding: [30, 30] });
       });
     });
+    const toggle = div.querySelector(".panel-toggle");
+    toggle.addEventListener("click", () => {
+      const collapsed = div.classList.toggle("collapsed");
+      toggle.textContent = collapsed ? "+" : "−";
+    });
+    if (IS_MOBILE) {
+      div.classList.add("collapsed");
+      toggle.textContent = "+";
+    }
     return div;
   },
 });
@@ -583,13 +665,31 @@ if (watermarkEl) {
 // ---------- Left tools panel ----------
 const toolsEl = document.getElementById("tools");
 const toolsToggle = document.getElementById("tools-toggle");
+const toolsBackdrop = document.getElementById("tools-backdrop");
+
+function setToolsCollapsed(collapsed) {
+  toolsEl.classList.toggle("collapsed", collapsed);
+  toolsToggle.textContent = collapsed ? "⚙" : "×";
+  toolsToggle.setAttribute(
+    "aria-label",
+    collapsed ? "Abrir panel de herramientas" : "Cerrar panel de herramientas"
+  );
+  document.body.classList.toggle("tools-modal", IS_MOBILE && !collapsed);
+}
+
 toolsToggle.addEventListener("click", () => {
-  const collapsed = toolsEl.classList.toggle("collapsed");
-  toolsToggle.textContent = collapsed ? "›" : "‹";
+  setToolsCollapsed(!toolsEl.classList.contains("collapsed"));
 });
+toolsBackdrop.addEventListener("click", () => setToolsCollapsed(true));
+
 // Don't let map drag/scroll start inside the panel.
 L.DomEvent.disableClickPropagation(toolsEl);
 L.DomEvent.disableScrollPropagation(toolsEl);
+L.DomEvent.disableClickPropagation(toolsToggle);
+L.DomEvent.disableClickPropagation(toolsBackdrop);
+
+// On phones start collapsed; on desktop keep the previous default (expanded).
+setToolsCollapsed(IS_MOBILE);
 
 // Dynamic download buttons
 toolsEl.querySelectorAll("button.action").forEach((b) => {
