@@ -89,13 +89,14 @@
   #tools-toggle:hover { background: #f4f4f4; }
   #tools:not(.collapsed) + #tools-toggle { left: 300px; }
 
-  /* Modal backdrop — only active on mobile when the tools panel is shown. */
+  /* Modal backdrop — only active on mobile when the tools panel is shown.
+     Sits above Leaflet's controls (z-index 1000) so the modal feels clean. */
   #tools-backdrop {
     display: none;
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    z-index: 900;
+    z-index: 1100;
     opacity: 0;
     transition: opacity 0.18s ease;
   }
@@ -110,7 +111,7 @@
       transform: translate(-50%, -50%);
       width: min(92vw, 360px);
       max-height: 80vh;
-      z-index: 950;
+      z-index: 1200; /* above backdrop (1100) and Leaflet controls (1000) */
     }
     #tools.collapsed {
       transform: translate(-50%, -50%) scale(0.9);
@@ -120,6 +121,8 @@
     #tools-body { max-height: calc(80vh - 24px); }
     /* Keep the toggle anchored to the bottom-left regardless of panel state. */
     #tools:not(.collapsed) + #tools-toggle { left: 12px; }
+    /* Toggle must clear the backdrop too, so users can still close from outside. */
+    #tools-toggle { z-index: 1300; }
   }
   #tools-body { padding: 12px 14px 14px; max-height: calc(100vh - 240px); overflow-y: auto; }
   #tools h3 {
