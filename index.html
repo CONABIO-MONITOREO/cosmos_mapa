@@ -135,6 +135,23 @@
   #tools .tool-section { padding: 10px 0; border-top: 1px solid #eee; }
   #tools .tool-section:first-of-type { border-top: none; padding-top: 0; }
   #tools .tool-section p.hint { margin: 2px 0 8px; font-size: 11px; color: #777; }
+  #tools .tool-subsection {
+    margin-top: 10px;
+    padding-top: 6px;
+    border-top: 1px dashed #e2e2e2;
+  }
+  #tools .tool-subsection:first-of-type {
+    margin-top: 4px;
+    padding-top: 0;
+    border-top: none;
+  }
+  #tools .tool-subsection h4 {
+    margin: 0 0 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+  }
   #tools .action {
     display: block;
     width: 100%;
@@ -279,24 +296,31 @@
   <div id="tools-body">
     <div class="tool-section">
       <h3>Recursos</h3>
-      <button class="action" type="button" disabled title="Próximamente">Manual CoSMoS</button>
+      <a class="action resource-link" href="https://bioteca.biodiversidad.gob.mx/janium-bin/detalle.pl?Id=20260518202942" target="_blank" rel="noopener">Manual CoSMoS</a>
       <a class="action resource-link" href="https://conabio-monitoreo.github.io/cosmos_talleres/" target="_blank" rel="noopener">Talleres y capacitación</a>
     </div>
     <div class="tool-section">
       <h3>Descarga dinámica</h3>
-      <p class="hint">Exporta la vista actual del mapa (lo que ves en pantalla).</p>
-      <label class="res-row" title="Aumenta los pixeles del archivo de salida; las anotaciones (escala, rosa, etiquetas) se redibujan crujientes a la nueva resolución.">
-        Resolución
-        <select id="export-res">
-          <option value="1" selected>Normal</option>
-          <option value="2">Alta (×2)</option>
-          <option value="3">Muy alta (×3)</option>
-        </select>
-      </label>
-      <button class="action" data-fmt="png" title="Captura de la vista actual del mapa como imagen PNG con escala, rosa y graticule.">Imagen PNG</button>
-      <button class="action" data-fmt="pdf" title="PDF de la vista actual con bbox, escala, rosa, graticule y CRS. No georreferenciado.">PDF</button>
-      <button class="action" data-fmt="geojson" title="GeoJSON con los nodos cuyo centroide cae en la vista actual. Listo para QGIS.">GeoJSON</button>
-      <button class="action" data-fmt="kml" title="KML con los nodos visibles. Abre en Google Earth.">KML</button>
+      <p class="hint">Datos y capturas de la vista actual del mapa.</p>
+      <div class="tool-subsection">
+        <h4>Formatos de imagen</h4>
+        <label class="res-row" title="Aumenta los pixeles del archivo de salida; las anotaciones (escala, rosa, leyenda, etiquetas) se redibujan crujientes a la nueva resolución.">
+          Resolución
+          <select id="export-res">
+            <option value="1" selected>Normal</option>
+            <option value="2">Alta (×2)</option>
+            <option value="3">Muy alta (×3)</option>
+          </select>
+        </label>
+        <button class="action" data-fmt="png" title="Captura de la vista actual del mapa como imagen PNG con escala, rosa, graticule y leyenda.">Imagen PNG</button>
+        <button class="action" data-fmt="pdf" title="PDF de la vista actual con bbox, escala, rosa, graticule, leyenda y CRS. No georreferenciado.">PDF</button>
+      </div>
+      <div class="tool-subsection">
+        <h4>Formatos geográficos</h4>
+        <button class="action" data-fmt="geojson" title="GeoJSON con los nodos visibles. Listo para QGIS.">GeoJSON</button>
+        <button class="action" data-fmt="kml" title="KML con los nodos visibles. Abre en Google Earth.">KML</button>
+        <button class="action" data-fmt="shp" title="Shapefile zip (shp, shx, dbf, prj) con los nodos visibles.">Shapefile (ZIP)</button>
+      </div>
     </div>
     <div class="tool-section">
       <h3>GeoPDF por nodo</h3>
@@ -326,6 +350,7 @@
 <script src="https://unpkg.com/leaflet.polylinemeasure@3.0.0/Leaflet.PolylineMeasure.js"></script>
 <script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/shp-write@0.3.2/shpwrite.js"></script>
 
 <script>
 const NODES = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.27390350734393, 21.639798541884726], [-100.26419673272545, 21.639689006884037], [-100.26431421127464, 21.630613840748588], [-100.27402032906929, 21.630723367884336], [-100.27390350734393, 21.639798541884726]]]}, "properties": {"ID_1kmMex": 3264958, "Consultor": "copanabis", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1281, "Cumulo": "5 y 6", "cumulos": [5, 6], "Estado": "Guanajuato", "Municipio": "San Luis de la Paz", "centroid": [-100.269109, 21.635206], "PDF": "pdf/Nodo_3264958.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.23579295621934, 21.5849064297276], [-100.22609018527916, 21.58479448616522], [-100.2262101936081, 21.57571958023049], [-100.2359123082704, 21.57583151574121], [-100.23579295621934, 21.5849064297276]]]}, "properties": {"ID_1kmMex": 3271485, "Consultor": "copanabis", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1334, "Cumulo": "5 y 6", "cumulos": [5, 6], "Estado": "Guanajuato", "Municipio": "San Luis de la Paz", "centroid": [-100.231001, 21.580313], "PDF": "pdf/Nodo_3271485.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.19637183688766, 21.629829954205377], [-100.18666584878102, 21.62971551377695], [-100.18678856519226, 21.62064044964051], [-100.19649389659027, 21.620754881849265], [-100.19637183688766, 21.629829954205377]]]}, "properties": {"ID_1kmMex": 3277998, "Consultor": "copanabis", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1318, "Cumulo": "5 y 6", "cumulos": [5, 6], "Estado": "Guanajuato", "Municipio": "Victoria", "centroid": [-100.19158, 21.625235], "PDF": "pdf/Nodo_3277998.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.09076981620342, 21.546863893164616], [-100.08106992254238, 21.546742775546956], [-100.08119970438766, 21.537668152521118], [-100.09089894217699, 21.537789261417018], [-100.09076981620342, 21.546863893164616]]]}, "properties": {"ID_1kmMex": 3295873, "Consultor": "copanabis", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1324, "Cumulo": "6", "cumulos": [6], "Estado": "Guanajuato", "Municipio": "Victoria", "centroid": [-100.085985, 21.542266], "PDF": "pdf/Nodo_3295873.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.09167333139824, 21.48334231405438], [-100.0819780269775, 21.48322125752755], [-100.08210768602872, 21.474146917666157], [-100.09180233519812, 21.474267965458367], [-100.09167333139824, 21.48334231405438]]]}, "properties": {"ID_1kmMex": 3295880, "Consultor": "copanabis", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1250, "Cumulo": "6", "cumulos": [6], "Estado": "Guanajuato", "Municipio": "Victoria y Xichú", "centroid": [-100.08689, 21.478745], "PDF": null}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.0232720291109, 21.518779591693534], [-100.01357422747918, 21.518654205049614], [-100.01370854581647, 21.509579764352917], [-100.02340569186775, 21.50970514195984], [-100.0232720291109, 21.518779591693534]]]}, "properties": {"ID_1kmMex": 3307201, "Consultor": "copanabis", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1284, "Cumulo": "6", "cumulos": [6], "Estado": "Guanajuato", "Municipio": "Xichú", "centroid": [-100.01849, 21.51418], "PDF": "pdf/Nodo_3307201.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.9268656300311, 20.683947395942603], [-98.91722909947563, 20.683752743761374], [-98.91743625222803, 20.67468420762434], [-98.92707213563526, 20.674878845414476], [-98.9268656300311, 20.683947395942603]]]}, "properties": {"ID_1kmMex": 3484756, "Consultor": "ecoydes", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1400, "Cumulo": "9", "cumulos": [9], "Estado": "Hidalgo", "Municipio": "Eloxochitlán", "centroid": [-98.922151, 20.679316], "PDF": "pdf/Nodo_3484756.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.92831058676815, 20.620468831231133], [-98.91867858442673, 20.620274279847834], [-98.91888554245953, 20.61120617548496], [-98.92851689826044, 20.611400712457066], [-98.92831058676815, 20.620468831231133]]]}, "properties": {"ID_1kmMex": 3484763, "Consultor": "ecoydes", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1620, "Cumulo": "9", "cumulos": [9], "Estado": "Hidalgo", "Municipio": "Metztitlán", "centroid": [-98.923598, 20.615838], "PDF": "pdf/Nodo_3484763.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.87952205260873, 20.646694496615066], [-98.86988825007869, 20.646496856453464], [-98.87009852544905, 20.63742863838963], [-98.87973168120644, 20.637626263922893], [-98.87952205260873, 20.646694496615066]]]}, "properties": {"ID_1kmMex": 3492222, "Consultor": "ecoydes", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1487, "Cumulo": "9", "cumulos": [9], "Estado": "Hidalgo", "Municipio": "Metztitlán", "centroid": [-98.87481, 20.642062], "PDF": "pdf/Nodo_3492222.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.69307195093076, 20.388748045191182], [-98.6834568035313, 20.388538659576284], [-98.68367917594428, 20.37947256367134], [-98.69329367911104, 20.37968193366853], [-98.69307195093076, 20.388748045191182]]]}, "properties": {"ID_1kmMex": 3522023, "Consultor": "ecoydes", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1651, "Cumulo": "9", "cumulos": [9], "Estado": "Hidalgo", "Municipio": "Atotonilco el Grande", "centroid": [-98.688375, 20.38411], "PDF": "pdf/Nodo_3522023.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.64454652391758, 20.40582730924641], [-98.63493023780995, 20.405614853108556], [-98.6351558918023, 20.396548700116934], [-98.64477153353478, 20.39676114041627], [-98.64454652391758, 20.40582730924641]]]}, "properties": {"ID_1kmMex": 3529467, "Consultor": "ecoydes", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1614, "Cumulo": "9", "cumulos": [9], "Estado": "Hidalgo", "Municipio": "Atotonilco el Grande", "centroid": [-98.639851, 20.401188], "PDF": "pdf/Nodo_3529467.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.60721919172266, 20.359643992082464], [-98.59760624807242, 20.359429184696303], [-98.59783432655925, 20.350363436892117], [-98.6074466262901, 20.35057822824246], [-98.60721919172266, 20.359643992082464]]]}, "properties": {"ID_1kmMex": 3535433, "Consultor": "ecoydes", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1680, "Cumulo": "9", "cumulos": [9], "Estado": "Hidalgo", "Municipio": "Atotonilco el Grande", "centroid": [-98.602527, 20.355004], "PDF": "pdf/Nodo_3535433.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.7376777108974, 19.338004090455264], [-98.72813666536189, 19.337797741567265], [-98.7283543504069, 19.328741015565015], [-98.73789476159197, 19.32894734858001], [-98.7376777108974, 19.338004090455264]]]}, "properties": {"ID_1kmMex": 3519159, "Consultor": "ibunam", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 3287, "Cumulo": "15", "cumulos": [15], "Estado": "México", "Municipio": "Ixtapaluca", "centroid": [-98.733016, 19.333373], "PDF": "pdf/Nodo_3519159.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.71509858389547, 19.482510757828038], [-98.70554743547426, 19.482302948978308], [-98.70576685604046, 19.473244780563142], [-98.71531736877172, 19.47345257349411], [-98.71509858389547, 19.482510757828038]]]}, "properties": {"ID_1kmMex": 3522123, "Consultor": "ibunam", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 3300, "Cumulo": "15", "cumulos": [15], "Estado": "México", "Municipio": "Texcoco", "centroid": [-98.710433, 19.477878], "PDF": "pdf/Nodo_3522123.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.6806527305567, 19.327700314414052], [-98.67111249439179, 19.327490366991025], [-98.67133395595239, 19.31843383123503], [-98.6808735578861, 19.318643762503562], [-98.6806527305567, 19.327700314414052]]]}, "properties": {"ID_1kmMex": 3528097, "Consultor": "ibunam", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 3272, "Cumulo": "15", "cumulos": [15], "Estado": "México", "Municipio": "Ixtapaluca", "centroid": [-98.675993, 19.323067], "PDF": "pdf/Nodo_3528097.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.66734313490437, 19.481465681703067], [-98.65779213346353, 19.48125485693122], [-98.65801473239146, 19.47219676880385], [-98.66756509817175, 19.472407577425578], [-98.66734313490437, 19.481465681703067]]]}, "properties": {"ID_1kmMex": 3529569, "Consultor": "ibunam", "Integridad": "Alta", "ie2023_med": 14, "Mdt_median": 3511, "Cumulo": "15", "cumulos": [15], "Estado": "México y Tlaxcala", "Municipio": "Tepetlaoxtoc y Calpulalpan", "centroid": [-98.662679, 19.476831], "PDF": "pdf/Nodo_3529569.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.65890483172359, 19.435965323511113], [-98.6493570373604, 19.435753976576525], [-98.64958012336012, 19.42669635937463], [-98.65912728249128, 19.426907690097803], [-98.65890483172359, 19.435965323511113]]]}, "properties": {"ID_1kmMex": 3531063, "Consultor": "ibunam", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 3271, "Cumulo": "15", "cumulos": [15], "Estado": "México y Puebla", "Municipio": "Texcoco y Tlahuapan", "centroid": [-98.654242, 19.431331], "PDF": "pdf/Nodo_3531063.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.64383170277655, 19.2725194066727], [-98.63429538895953, 19.27230714779475], [-98.63451920869753, 19.26325124602886], [-98.6440548888123, 19.263463488548645], [-98.64383170277655, 19.2725194066727]]]}, "properties": {"ID_1kmMex": 3534062, "Consultor": "ibunam", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 3278, "Cumulo": "15", "cumulos": [15], "Estado": "México y Puebla", "Municipio": "Ixtapaluca y Tlahuapan", "centroid": [-98.639175, 19.267885], "PDF": "pdf/Nodo_3534062.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.53951206085031, 19.53832057334598], [-100.52995497260213, 19.538228000310134], [-100.53005292924134, 19.529167361846167], [-100.53960938074006, 19.52925992780062], [-100.53951206085031, 19.53832057334598]]]}, "properties": {"ID_1kmMex": 3223989, "Consultor": "ambiomas", "Integridad": "Alta", "ie2023_med": 12, "Mdt_median": 2024, "Cumulo": "1 y 2", "cumulos": [1, 2], "Estado": "Michoacán de Ocampo", "Municipio": "Tuxpan", "centroid": [-100.534782, 19.533744], "PDF": "pdf/Nodo_3223989.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.52936695849964, 19.592593696359124], [-100.51980606104384, 19.592500476816213], [-100.51990473331438, 19.583439313646508], [-100.52946499351395, 19.583532526069813], [-100.52936695849964, 19.592593696359124]]]}, "properties": {"ID_1kmMex": 3225653, "Consultor": "ambiomas", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 2059, "Cumulo": "1 y 2", "cumulos": [1, 2], "Estado": "Michoacán de Ocampo", "Municipio": "Tuxpan", "centroid": [-100.524636, 19.588017], "PDF": "pdf/Nodo_3225653.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.4816638249052, 19.58306042397834], [-100.47210363132486, 19.582964191574764], [-100.472205476258, 19.57390315278719], [-100.48176503268039, 19.57399937783902], [-100.4816638249052, 19.58306042397834]]]}, "properties": {"ID_1kmMex": 3233982, "Consultor": "ambiomas", "Integridad": "Alta", "ie2023_med": 12, "Mdt_median": 1925, "Cumulo": "1 y 2", "cumulos": [1, 2], "Estado": "Michoacán de Ocampo", "Municipio": "Tuxpan", "centroid": [-100.476934, 19.578482], "PDF": "pdf/Nodo_3233982.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.39711847182623, 19.455327010561447], [-100.38756731565148, 19.45522545115869], [-100.38767469438092, 19.446165737330087], [-100.39722521460992, 19.446267288945464], [-100.39711847182623, 19.455327010561447]]]}, "properties": {"ID_1kmMex": 3248853, "Consultor": "ambiomas", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1870, "Cumulo": "2", "cumulos": [2], "Estado": "Michoacán de Ocampo", "Municipio": "Zitácuaro", "centroid": [-100.392396, 19.450746], "PDF": "pdf/Nodo_3248853.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.37855610332275, 19.409825674930165], [-100.36900815469208, 19.40972294828129], [-100.36911673298636, 19.400663709519296], [-100.37866404610018, 19.400766428280946], [-100.37855610332275, 19.409825674930165]]]}, "properties": {"ID_1kmMex": 3252132, "Consultor": "ambiomas", "Integridad": "Media", "ie2023_med": 9, "Mdt_median": 1934, "Cumulo": "2", "cumulos": [2], "Estado": "Michoacán de Ocampo", "Municipio": "Zitácuaro", "centroid": [-100.373836, 19.405245], "PDF": "pdf/Nodo_3252132.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.33859463586425, 19.554370991656338], [-100.32903656597259, 19.554265723673996], [-100.32914792340003, 19.54520506637088], [-100.3387053564309, 19.545310326304623], [-100.33859463586425, 19.554370991656338]]]}, "properties": {"ID_1kmMex": 3258659, "Consultor": "ambiomas", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 2549, "Cumulo": "1", "cumulos": [1], "Estado": "Michoacán de Ocampo", "Municipio": "Ocampo", "centroid": [-100.333871, 19.549788], "PDF": "pdf/Nodo_3258659.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.31970248456956, 19.536038642446083], [-100.31014571807484, 19.535932183088853], [-100.31025831919723, 19.52687172024809], [-100.31981444900683, 19.52697817146129], [-100.31970248456956, 19.536038642446083]]]}, "properties": {"ID_1kmMex": 3261927, "Consultor": "ambiomas", "Integridad": "Alta", "ie2023_med": 14, "Mdt_median": 2817, "Cumulo": "1", "cumulos": [1], "Estado": "Michoacán de Ocampo", "Municipio": "Ocampo y Zitácuaro", "centroid": [-100.31498, 19.531455], "PDF": "pdf/Nodo_3261927.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.32003833312572, 19.50885749804488], [-100.31048347643201, 19.50875106312426], [-100.31059603255038, 19.499690869283988], [-100.32015025281332, 19.49979729605605], [-100.32003833312572, 19.50885749804488]]]}, "properties": {"ID_1kmMex": 3261930, "Consultor": "ambiomas", "Integridad": "Alta", "ie2023_med": 12, "Mdt_median": 2384, "Cumulo": "1", "cumulos": [1], "Estado": "Michoacán de Ocampo", "Municipio": "Zitácuaro", "centroid": [-100.315317, 19.504274], "PDF": "pdf/Nodo_3261930.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.26386610840991, 19.417612392409595], [-100.25431770329105, 19.417502420269088], [-100.25443392303043, 19.40844318743626], [-100.26398169258361, 19.40855315113519], [-100.26386610840991, 19.417612392409595]]]}, "properties": {"ID_1kmMex": 3271724, "Consultor": "ambiomas", "Integridad": "Media", "ie2023_med": 10, "Mdt_median": 2995, "Cumulo": "2", "cumulos": [2], "Estado": "Michoacán de Ocampo", "Municipio": "Zitácuaro", "centroid": [-100.25915, 19.413028], "PDF": "pdf/Nodo_3271724.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-99.00647061971524, 18.401758547108514], [-98.99699438945972, 18.40156940270899], [-98.99719282414986, 18.392523227232218], [-99.00666842859277, 18.392712356690573], [-99.00647061971524, 18.401758547108514]]]}, "properties": {"ID_1kmMex": 3480525, "Consultor": "wildforest", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1088, "Cumulo": "12", "cumulos": [12], "Estado": "Morelos y Puebla", "Municipio": "Tlaquiltenango y Jolalpan", "centroid": [-99.001832, 18.397141], "PDF": "pdf/Nodo_3480525.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.9853267825539, 18.5008950706747], [-98.9758437155482, 18.50070456572944], [-98.97604369242039, 18.491657150140558], [-98.98552613271409, 18.491847640078838], [-98.9853267825539, 18.5008950706747]]]}, "properties": {"ID_1kmMex": 3483504, "Consultor": "wildforest", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1300, "Cumulo": "12", "cumulos": [12], "Estado": "Morelos", "Municipio": "Tlaquiltenango", "centroid": [-98.980685, 18.496276], "PDF": "pdf/Nodo_3483504.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.95546830354517, 18.563656643644844], [-98.9459809269361, 18.5634642382098], [-98.94618297089288, 18.554416073360617], [-98.95566972022571, 18.554608463665634], [-98.95546830354517, 18.563656643644844]]]}, "properties": {"ID_1kmMex": 3487974, "Consultor": "wildforest", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1400, "Cumulo": "12", "cumulos": [12], "Estado": "Morelos", "Municipio": "Tepalcingo", "centroid": [-98.950825, 18.559036], "PDF": "pdf/Nodo_3487974.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.93892386348575, 18.454700934797405], [-98.92944406214419, 18.45450751523458], [-98.92964703827164, 18.445460749514346], [-98.93912621334135, 18.44565415382103], [-98.93892386348575, 18.454700934797405]]]}, "properties": {"ID_1kmMex": 3490972, "Consultor": "wildforest", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1396, "Cumulo": "12", "cumulos": [12], "Estado": "Morelos", "Municipio": "Tlaquiltenango", "centroid": [-98.934285, 18.450081], "PDF": "pdf/Nodo_3490972.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.90823624166381, 18.55364052765452], [-98.89874962679663, 18.55344514512162], [-98.89895477991278, 18.544397169496253], [-98.90844076761333, 18.544592536660826], [-98.90823624166381, 18.55364052765452]]]}, "properties": {"ID_1kmMex": 3495434, "Consultor": "wildforest", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1400, "Cumulo": "12", "cumulos": [12], "Estado": "Morelos", "Municipio": "Tepalcingo", "centroid": [-98.903595, 18.549019], "PDF": "pdf/Nodo_3495434.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-98.87132484449977, 18.507616893849942], [-98.86184147359374, 18.507419195401113], [-98.86204899803714, 18.49837184938727], [-98.87153174221238, 18.498569532265606], [-98.87132484449977, 18.507616893849942]]]}, "properties": {"ID_1kmMex": 3501394, "Consultor": "wildforest", "Integridad": "Media", "ie2023_med": 8, "Mdt_median": 1200, "Cumulo": "12", "cumulos": [12], "Estado": "Morelos", "Municipio": "Tepalcingo", "centroid": [-98.866687, 18.502994], "PDF": "pdf/Nodo_3501394.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.18556065318452, 21.711392750927686], [-100.17584876734038, 21.711277622049643], [-100.17597229087687, 21.70220223689419], [-100.18568351921535, 21.702317357524198], [-100.18556065318452, 21.711392750927686]]]}, "properties": {"ID_1kmMex": 3279618, "Consultor": "copanabis", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1318, "Cumulo": "5", "cumulos": [5], "Estado": "San Luis Potosí", "Municipio": "Santa María del Río y Rioverde", "centroid": [-100.180766, 21.706798], "PDF": "pdf/Nodo_3279618.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.13662282904959, 21.738037228093756], [-100.12690905474749, 21.737919001092248], [-100.12703591729779, 21.728843552126992], [-100.13674903384428, 21.728961770665645], [-100.13662282904959, 21.738037228093756]]]}, "properties": {"ID_1kmMex": 3287744, "Consultor": "copanabis", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1358, "Cumulo": "5", "cumulos": [5], "Estado": "San Luis Potosí", "Municipio": "Rioverde", "centroid": [-100.131829, 21.73344], "PDF": "pdf/Nodo_3287744.pdf"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-100.10812227447558, 21.69230389594046], [-100.09841183983353, 21.69218386791858], [-100.09854058841731, 21.68310862195058], [-100.10825036575936, 21.683228641368373], [-100.10812227447558, 21.69230389594046]]]}, "properties": {"ID_1kmMex": 3292619, "Consultor": "copanabis", "Integridad": "Alta", "ie2023_med": 15, "Mdt_median": 1399, "Cumulo": "5", "cumulos": [5], "Estado": "San Luis Potosí", "Municipio": "Rioverde", "centroid": [-100.103331, 21.687706], "PDF": "pdf/Nodo_3292619.pdf"}}]};
@@ -773,6 +798,51 @@ function exportAs(fmt) {
   if (fmt === "png") return exportPNG();
   if (fmt === "pdf") return exportPDF();
   if (fmt === "kml") return exportKML();
+  if (fmt === "shp") return exportShapefile();
+}
+
+function exportShapefile() {
+  if (typeof shpwrite === "undefined" || typeof shpwrite.zip !== "function") {
+    alert("La librería de shapefile no se cargó.");
+    return;
+  }
+  const feats = visibleNodeFeatures();
+  if (!feats.length) {
+    alert("No hay nodos visibles para exportar.");
+    return;
+  }
+  // DBF can only store scalar values; flatten arrays/objects to strings and
+  // skip nulls so shp-write does not produce a malformed file.
+  const flatFeats = feats.map((f) => {
+    const props = {};
+    for (const [k, v] of Object.entries(f.properties || {})) {
+      if (v == null) continue;
+      if (Array.isArray(v)) props[k] = v.join(",");
+      else if (typeof v === "object") props[k] = JSON.stringify(v);
+      else props[k] = v;
+    }
+    return { type: "Feature", geometry: f.geometry, properties: props };
+  });
+  const fc = { type: "FeatureCollection", features: flatFeats };
+  showLoading(true);
+  // shp-write is CPU-heavy; defer one frame so the loading indicator paints.
+  setTimeout(() => {
+    try {
+      const b64 = shpwrite.zip(fc, {
+        folder: "nodos_cosmos",
+        types: { polygon: "nodos" },
+      });
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      downloadBlob(new Blob([bytes], { type: "application/zip" }), `nodos_${timestamp()}.zip`);
+    } catch (e) {
+      alert("No se pudo generar el shapefile: " + e.message);
+      console.error(e);
+    } finally {
+      showLoading(false);
+    }
+  }, 30);
 }
 
 function xmlEscape(s) {
@@ -902,15 +972,15 @@ function niceStep(range) {
 }
 
 function decorate(mapCanvas, measureLabels = [], scale = 1) {
-  const M_L = 56, M_R = 56, M_T = 28, M_B = 36;
+  const M_L = 56, M_R = 56, M_T = 28, M_B = 124;  // bottom strip holds ficha + legend
   const W = mapCanvas.width, H = mapCanvas.height;
   const out = document.createElement("canvas");
   out.width = (W + M_L + M_R) * scale;
   out.height = (H + M_T + M_B) * scale;
   const ctx = out.getContext("2d");
   // Draw in logical units; canvas is `scale` times larger in real pixels, so
-  // post-decorations (text, graticule, labels) come out crisp. The base map
-  // tile raster is bilinearly upscaled — soft but accepted.
+  // post-decorations (text, graticule, labels, legend) come out crisp. The
+  // base map tile raster is bilinearly upscaled — soft but accepted.
   if (scale !== 1) {
     ctx.scale(scale, scale);
     ctx.imageSmoothingEnabled = true;
@@ -929,7 +999,124 @@ function decorate(mapCanvas, measureLabels = [], scale = 1) {
   drawGraticule(ctx, M_L, M_T, W, H);
   drawScaleBar(ctx, M_L + 12, M_T + H - 16);
   drawCompass(ctx, M_L + W - 48, M_T + 48);
+
+  // Bottom strip: ficha (left) anchored to map's left edge, legend (right)
+  // anchored to map's right edge. Both share the same baseline y.
+  const stripY = M_T + H + 12;
+  const legendBox = drawLegend(ctx, M_L + W, stripY);
+  drawFicha(ctx, M_L, stripY, legendBox.x - M_L - 14);
   return out;
+}
+
+function drawLegend(ctx, rightX, y) {
+  const entries = [
+    { type: "poly", color: IE_COLORS.Alta,  label: "Integridad alta" },
+    { type: "poly", color: IE_COLORS.Media, label: "Integridad media" },
+    { type: "dash", color: "#555",          label: "Cúmulo (borde)" },
+    { type: "dot",  color: "#c0392b",       label: "Sitio" },
+    { type: "line", color: "#f1c40f",       label: "Buffer 60 m" },
+  ];
+  const pad = 8;
+  const lineH = 16;
+  const swatchW = 22;
+  const swatchH = 11;
+  const gap = 8;
+  const titleH = 16;
+
+  ctx.save();
+  ctx.font = "11px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  ctx.textBaseline = "top";
+  ctx.textAlign = "left";
+  let maxLabelW = 0;
+  entries.forEach((e) => {
+    maxLabelW = Math.max(maxLabelW, ctx.measureText(e.label).width);
+  });
+  const boxW = pad * 2 + swatchW + gap + Math.ceil(maxLabelW);
+  const boxH = pad + titleH + entries.length * lineH + pad - 4;
+  const x = rightX - boxW;
+
+  // Container
+  ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+  ctx.fillRect(x, y, boxW, boxH);
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, boxW, boxH);
+
+  // Title
+  ctx.fillStyle = "#222";
+  ctx.font = "bold 11px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText("Leyenda", x + pad, y + pad);
+
+  // Entries
+  ctx.font = "11px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  entries.forEach((e, i) => {
+    const ry = y + pad + titleH + i * lineH;
+    const sx = x + pad;
+    const sy = ry + (lineH - swatchH) / 2 - 1;
+    const cy = sy + swatchH / 2;
+
+    if (e.type === "poly") {
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(sx + 1, sy + 1, swatchW - 2, swatchH - 2);
+    } else if (e.type === "dash") {
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(sx, cy);
+      ctx.lineTo(sx + swatchW, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (e.type === "line") {
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sx, cy);
+      ctx.lineTo(sx + swatchW, cy);
+      ctx.stroke();
+    } else if (e.type === "dot") {
+      ctx.fillStyle = e.color;
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(sx + swatchW / 2, cy, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#222";
+    ctx.fillText(e.label, sx + swatchW + gap, ry + 2);
+  });
+  ctx.restore();
+  return { x, y, w: boxW, h: boxH };
+}
+
+function drawFicha(ctx, x, y, maxW) {
+  const b = map.getBounds();
+  const sw = b.getSouthWest();
+  const ne = b.getNorthEast();
+  const z = map.getZoom();
+  const cnt = visibleNodeFeatures().length;
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  const fecha = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+
+  ctx.save();
+  ctx.fillStyle = "#222";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+
+  ctx.font = "bold 12px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  ctx.fillText(`Fecha: ${fecha}`, x, y);
+
+  ctx.font = "10.5px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  ctx.fillStyle = "#333";
+  ctx.fillText(`CRS: EPSG:4326 (WGS84)   ·   Zoom: ${z}   ·   Nodos visibles: ${cnt}`, x, y + 20);
+  ctx.fillText(
+    `BBox  SW ${sw.lat.toFixed(5)}, ${sw.lng.toFixed(5)}   NE ${ne.lat.toFixed(5)}, ${ne.lng.toFixed(5)}`,
+    x, y + 36
+  );
+  ctx.restore();
 }
 
 function drawMeasureLabels(ctx, mx, my, w, h, labels) {
@@ -1035,9 +1222,8 @@ function drawGraticule(ctx, mx, my, w, h) {
     ctx.textAlign = "right"; ctx.fillText(lbl, mx - 6, y);
     ctx.textAlign = "left";  ctx.fillText(lbl, mx + w + 6, y);
   }
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-  ctx.fillText("EPSG:4326 (WGS84)", mx, my + h + 18);
+  // CRS label now lives in the ficha drawn under the map, so we don't add it
+  // here.
 }
 
 function drawScaleBar(ctx, x, y) {
@@ -1101,17 +1287,15 @@ function exportPNG() {
 function exportPDF() {
   captureMap((canvas) => {
     const { jsPDF } = window.jspdf;
-    // Tight page: scale canvas to ~maxSide pt on the long axis, then size the
-    // page exactly to the image + a slim footer band so there's no whitespace
-    // letterboxing.
+    // The decorated canvas already contains the ficha + legend strip, so the
+    // PDF is just the image padded by a slim margin — no extra footer band.
     const maxSide = 820;
     const k = maxSide / Math.max(canvas.width, canvas.height);
     const imgW = canvas.width * k;
     const imgH = canvas.height * k;
     const margin = 12;
-    const footerH = 38;
     const pageW = imgW + margin * 2;
-    const pageH = imgH + margin * 2 + footerH;
+    const pageH = imgH + margin * 2;
 
     const pdf = new jsPDF({
       orientation: pageW >= pageH ? "landscape" : "portrait",
@@ -1119,24 +1303,6 @@ function exportPDF() {
       format: [pageW, pageH],
     });
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin, margin, imgW, imgH);
-
-    const b = map.getBounds();
-    const sw = b.getSouthWest();
-    const ne = b.getNorthEast();
-    const z = map.getZoom();
-    const cnt = visibleNodeFeatures().length;
-    const d = new Date();
-    const p = (n) => String(n).padStart(2, "0");
-    const fecha = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-    const fy = margin + imgH + 14;
-    pdf.setFontSize(9);
-    pdf.text(`Fecha: ${fecha}`, margin, fy);
-    pdf.setFontSize(7.5);
-    pdf.text(`CRS: EPSG:4326 (WGS84)   Zoom: ${z}   Nodos visibles: ${cnt}`, margin, fy + 12);
-    pdf.text(
-      `BBox: SW ${sw.lat.toFixed(5)}, ${sw.lng.toFixed(5)}   NE ${ne.lat.toFixed(5)}, ${ne.lng.toFixed(5)}`,
-      margin, fy + 22
-    );
     pdf.save(`mapa_${timestamp()}.pdf`);
   });
 }
