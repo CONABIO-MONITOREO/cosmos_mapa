@@ -317,7 +317,7 @@
   <div id="tools-body">
     <div class="tool-section">
       <h3>Recursos</h3>
-      <a class="action resource-link" href="https://bioteca.biodiversidad.gob.mx/janium-bin/detalle.pl?Id=20260518202942" target="_blank" rel="noopener">Manual CoSMoS</a>
+      <a class="action resource-link" href="static/pdf/manual_cosmos.pdf" download="manual_cosmos.pdf">Manual CoSMoS</a>
       <a class="action resource-link" href="https://conabio-monitoreo.github.io/cosmos_talleres/" target="_blank" rel="noopener">Talleres y capacitación</a>
     </div>
     <div class="tool-section">
@@ -471,7 +471,7 @@ const nodeLayer = L.geoJSON(NODES, {
       `<b>Cúmulo</b> ${p.Cumulo}<br>` +
       `<b>Estado</b> ${p.Estado || "—"}<br>` +
       `<b>Municipio</b> ${p.Municipio || "—"}<br>` +
-      `<b>Mdt</b> ${p.Mdt_median != null ? p.Mdt_median + " m" : "—"}<br>` +
+      `<b>Altitud</b> ${p.Mdt_median != null ? p.Mdt_median + " m" : "—"}<br>` +
       `<b>Centroide</b> ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     layer.bindTooltip(tipHtml, { className: "node-tip", sticky: true, direction: "top" });
     layer.on("mouseover", () => layer.setStyle(nodeStyleHover(feat)));
@@ -1112,14 +1112,20 @@ function captureMap(cb) {
       if (err) { alert("No se pudo capturar el mapa: " + err); return; }
       if (overlayCanvas) {
         // Paint the visible portion of the canvas-renderer overlay onto the
-        // captured map. Source offset comes from the overlay's translate; it
-        // is typically negative because Leaflet renders with padding around
-        // the viewport.
-        const pos = L.DomUtil.getPosition(overlayCanvas) || L.point(0, 0);
+        // captured map. We need the canvas's actual on-screen position
+        // relative to the map container, which depends on the cumulative
+        // translate of every ancestor pane (overlayPane + mapPane). After a
+        // pure pan, mapPane has a non-zero translate that isn't reflected in
+        // L.DomUtil.getPosition(overlayCanvas) alone — using
+        // getBoundingClientRect gives the right answer regardless.
+        const cRect = overlayCanvas.getBoundingClientRect();
+        const mRect = map.getContainer().getBoundingClientRect();
+        const offX = cRect.left - mRect.left;
+        const offY = cRect.top - mRect.top;
         const ctx2 = canvas.getContext("2d");
         ctx2.drawImage(
           overlayCanvas,
-          -pos.x, -pos.y, canvas.width, canvas.height,
+          -offX, -offY, canvas.width, canvas.height,
           0, 0, canvas.width, canvas.height
         );
       }
