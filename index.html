@@ -272,6 +272,45 @@
     box-sizing: border-box;
   }
 
+  /* Locate-me control + marker */
+  .locate-control a {
+    font-size: 16px;
+    line-height: 26px;
+    text-align: center;
+    color: #333;
+  }
+  .locate-control a.active {
+    background: #2c6cb0;
+    color: #fff;
+  }
+  .locate-control a.busy {
+    color: #888;
+    cursor: progress;
+  }
+  .location-marker { background: transparent; border: none; }
+  .location-marker .location-pulse {
+    position: absolute;
+    left: 0; top: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(44, 108, 176, 0.45);
+    animation: location-pulse 1.8s ease-out infinite;
+  }
+  .location-marker .location-dot {
+    position: absolute;
+    left: 4px; top: 4px;
+    width: 14px; height: 14px;
+    background: #2c6cb0;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-sizing: border-box;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  }
+  @keyframes location-pulse {
+    0%   { transform: scale(0.55); opacity: 0.85; }
+    100% { transform: scale(2.2);  opacity: 0; }
+  }
+
   /* ---------- Corner watermark ---------- */
   #watermark {
     position: absolute;
@@ -328,9 +367,9 @@
         <label class="res-row" title="Aumenta los pixeles del archivo de salida; las anotaciones (escala, rosa, leyenda, etiquetas) se redibujan crujientes a la nueva resolución.">
           Resolución
           <select id="export-res">
-            <option value="1" selected>Normal</option>
-            <option value="2">Alta (×2)</option>
-            <option value="3">Muy alta (×3)</option>
+            <option value="1">Baja</option>
+            <option value="2" selected>Normal</option>
+            <option value="3">Alta</option>
           </select>
         </label>
         <button class="action" data-fmt="png" title="Captura de la vista actual del mapa como imagen PNG con escala, rosa, graticule y leyenda.">Imagen PNG</button>
@@ -760,6 +799,117 @@ try {
   console.warn("polylineMeasure init failed:", e);
 }
 
+// ---------- Locate me ----------
+// Uses navigator.geolocation under the hood. Tapping the button shows the
+// browser's permission prompt the first time; once granted Leaflet watches
+// the position and re-centers only on the first fix so the map doesn't yank
+// itself away while the user is browsing.
+// Exported via captureMap so PNG/PDF show the user's position too.
+let LOCATION_STATE = null;  // { lat, lng, accuracy } | null
+if ("geolocation" in navigator) {
+  const LocateControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd() {
+      const container = L.DomUtil.create(
+        "div",
+        "leaflet-bar leaflet-control locate-control"
+      );
+      container.innerHTML =
+        '<a href="#" role="button" ' +
+        'title="Mostrar mi ubicación (solicita permiso al navegador)" ' +
+        'aria-label="Mi ubicación">◎</a>';
+      const btn = container.firstChild;
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.disableScrollPropagation(container);
+
+      let active = false;
+      let firstFix = true;
+      let marker = null;
+      let accuracyCircle = null;
+
+      const onFound = (e) => {
+        if (!active) return;
+        L.DomUtil.removeClass(btn, "busy");
+        LOCATION_STATE = { lat: e.latlng.lat, lng: e.latlng.lng, accuracy: e.accuracy };
+        const icon = L.divIcon({
+          className: "location-marker",
+          html: '<div class="location-pulse"></div><div class="location-dot"></div>',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        });
+        if (!marker) {
+          marker = L.marker(e.latlng, { icon, interactive: false, keyboard: false }).addTo(map);
+        } else {
+          marker.setLatLng(e.latlng);
+        }
+        if (!accuracyCircle) {
+          accuracyCircle = L.circle(e.latlng, {
+            radius: e.accuracy,
+            color: "#2c6cb0",
+            fillColor: "#2c6cb0",
+            fillOpacity: 0.1,
+            weight: 1,
+            opacity: 0.5,
+            interactive: false,
+          }).addTo(map);
+        } else {
+          accuracyCircle.setLatLng(e.latlng);
+          accuracyCircle.setRadius(e.accuracy);
+        }
+        if (firstFix) {
+          map.setView(e.latlng, Math.max(map.getZoom(), 14));
+          firstFix = false;
+        }
+      };
+
+      const onError = (e) => {
+        if (!active) return;
+        stop();
+        const msg =
+          e.code === 1
+            ? "Permiso de ubicación denegado. Habilítalo en el navegador para esta página."
+            : e.code === 2
+              ? "No se pudo obtener la ubicación (sin señal)."
+              : e.code === 3
+                ? "Tiempo de espera agotado al obtener la ubicación."
+                : "No se pudo obtener la ubicación: " + (e.message || "");
+        alert(msg);
+      };
+
+      function start() {
+        active = true;
+        firstFix = true;
+        L.DomUtil.addClass(btn, "active");
+        L.DomUtil.addClass(btn, "busy");
+        btn.title = "Detener seguimiento de ubicación";
+        map.on("locationfound", onFound);
+        map.on("locationerror", onError);
+        map.locate({ watch: true, enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+      }
+      function stop() {
+        active = false;
+        L.DomUtil.removeClass(btn, "active");
+        L.DomUtil.removeClass(btn, "busy");
+        btn.title = "Mostrar mi ubicación (solicita permiso al navegador)";
+        map.stopLocate();
+        map.off("locationfound", onFound);
+        map.off("locationerror", onError);
+        if (marker) { map.removeLayer(marker); marker = null; }
+        if (accuracyCircle) { map.removeLayer(accuracyCircle); accuracyCircle = null; }
+        LOCATION_STATE = null;
+      }
+
+      L.DomEvent.on(btn, "click", (e) => {
+        L.DomEvent.preventDefault(e);
+        if (active) stop();
+        else start();
+      });
+      return container;
+    },
+  });
+  new LocateControl().addTo(map);
+}
+
 syncZoomLayers();
 if (clusterOutlineLayer.bringToBack) clusterOutlineLayer.bringToBack();
 
@@ -1092,6 +1242,7 @@ function getExportScale() {
 function captureMap(cb) {
   showLoading(true);
   const measureLabels = snapshotMeasureLabels();
+  const location = LOCATION_STATE ? { ...LOCATION_STATE } : null;
   const scale = getExportScale();
   withoutDivIconMarkers((restore) => {
     // leaflet-image 0.4.0's handlePathRoot was written for Leaflet 0.7's path
@@ -1134,7 +1285,7 @@ function captureMap(cb) {
           0, 0, canvas.width, canvas.height
         );
       }
-      cb(decorate(canvas, measureLabels, scale));
+      cb(decorate(canvas, measureLabels, scale, location));
     });
   });
 }
@@ -1147,14 +1298,16 @@ function niceStep(range) {
   return 20;
 }
 
-function decorate(mapCanvas, measureLabels = [], scale = 1) {
+function decorate(mapCanvas, measureLabels = [], scale = 1, location = null) {
   // Cartographic layout: map on top, then a strip with a discreet logo
   // watermark on the left and ficha + legend cartouches side by side, right
   // aligned to the map.
   const M_L = 56, M_R = 56, M_T = 28;
   const STRIP_GAP = 22;
   const STRIP_BOTTOM = 14;
-  const CARD_H = 120;
+  // When the location pin is active the legend grows from 5 to 6 entries; bump
+  // the cards a bit so the extra row keeps comfortable line spacing.
+  const CARD_H = location ? 132 : 120;
   const FICHA_W = 250;
   const LEGEND_W = 220;
   const CARD_GAP = 10;
@@ -1184,6 +1337,7 @@ function decorate(mapCanvas, measureLabels = [], scale = 1) {
 
   drawNodeLabels(ctx, M_L, M_T, W, H);
   drawMeasureLabels(ctx, M_L, M_T, W, H, measureLabels);
+  drawLocationMarker(ctx, M_L, M_T, W, H, location);
   drawGraticule(ctx, M_L, M_T, W, H);
   drawScaleBar(ctx, M_L + 12, M_T + H - 16);
   drawCompass(ctx, M_L + W - 48, M_T + 48);
@@ -1193,7 +1347,7 @@ function decorate(mapCanvas, measureLabels = [], scale = 1) {
   const legendX = M_L + W - LEGEND_W;
   const fichaX = legendX - CARD_GAP - FICHA_W;
   drawFichaCard(ctx, fichaX, stripY, FICHA_W, CARD_H);
-  drawLegendCard(ctx, legendX, stripY, LEGEND_W, CARD_H);
+  drawLegendCard(ctx, legendX, stripY, LEGEND_W, CARD_H, !!location);
 
   // Logo watermark on the left, with a comfortable inset from the map edge
   // and a gap before the ficha so it doesn't crowd either side.
@@ -1327,7 +1481,7 @@ function drawFichaCard(ctx, x, y, w, h) {
   ctx.restore();
 }
 
-function drawLegendCard(ctx, x, y, w, h) {
+function drawLegendCard(ctx, x, y, w, h, includeLocation) {
   const body = drawCartouche(ctx, x, y, w, h, "Leyenda");
   const entries = [
     { type: "poly", color: IE_COLORS.Alta,  label: "Integridad alta" },
@@ -1336,6 +1490,9 @@ function drawLegendCard(ctx, x, y, w, h) {
     { type: "dot",  color: "#c0392b",       label: "Sitio" },
     { type: "line", color: "#f1c40f",       label: "Buffer 60 m" },
   ];
+  if (includeLocation) {
+    entries.push({ type: "loc", color: "#2c6cb0", label: "Mi ubicación" });
+  }
   const lineH = Math.floor(body.h / entries.length);
   const swatchW = 24;
   const swatchH = 11;
@@ -1379,10 +1536,56 @@ function drawLegendCard(ctx, x, y, w, h) {
       ctx.arc(sx + swatchW / 2, cy, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
+    } else if (e.type === "loc") {
+      // Halo + dot to mirror the live location marker.
+      const cx = sx + swatchW / 2;
+      ctx.fillStyle = "rgba(44, 108, 176, 0.35)";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = e.color;
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
     }
     ctx.fillStyle = "#222";
     ctx.fillText(e.label, sx + swatchW + gap, cy + 0.5);
   });
+  ctx.restore();
+}
+
+function drawLocationMarker(ctx, mx, my, w, h, location) {
+  if (!location) return;
+  const b = map.getBounds();
+  if (!b.contains([location.lat, location.lng])) return;
+  const size = map.getSize();
+  const pt = map.latLngToContainerPoint([location.lat, location.lng]);
+  const x = mx + (pt.x / size.x) * w;
+  const y = my + (pt.y / size.y) * h;
+
+  ctx.save();
+  // Static halo (no animation in a still image, but a soft glow helps locate)
+  ctx.fillStyle = "rgba(44, 108, 176, 0.35)";
+  ctx.beginPath();
+  ctx.arc(x, y, 13, 0, Math.PI * 2);
+  ctx.fill();
+  // Solid blue dot with white border for contrast
+  ctx.fillStyle = "#2c6cb0";
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // Thin outer outline so the marker reads on both light and dark basemaps
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.arc(x, y, 8.6, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 }
 
