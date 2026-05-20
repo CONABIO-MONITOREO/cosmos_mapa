@@ -1112,20 +1112,25 @@ function captureMap(cb) {
       if (err) { alert("No se pudo capturar el mapa: " + err); return; }
       if (overlayCanvas) {
         // Paint the visible portion of the canvas-renderer overlay onto the
-        // captured map. We need the canvas's actual on-screen position
-        // relative to the map container, which depends on the cumulative
-        // translate of every ancestor pane (overlayPane + mapPane). After a
-        // pure pan, mapPane has a non-zero translate that isn't reflected in
-        // L.DomUtil.getPosition(overlayCanvas) alone — using
-        // getBoundingClientRect gives the right answer regardless.
+        // captured map. Two corrections vs the naive composite:
+        //   1) Use getBoundingClientRect to get the canvas's actual on-screen
+        //      position, so we pick up the cumulative translate of every
+        //      ancestor pane (mapPane has a non-zero translate after a pan).
+        //   2) drawImage's source coords are in the source's own pixel space.
+        //      On retina/mobile devices Leaflet renders the canvas at 2x
+        //      (`L.Browser.retina ? 2 : 1`), so width attr > CSS width. We
+        //      must scale the source rect by that ratio or we'd sample only
+        //      the top-left quadrant.
         const cRect = overlayCanvas.getBoundingClientRect();
         const mRect = map.getContainer().getBoundingClientRect();
         const offX = cRect.left - mRect.left;
         const offY = cRect.top - mRect.top;
+        const srcScale = cRect.width > 0 ? overlayCanvas.width / cRect.width : 1;
         const ctx2 = canvas.getContext("2d");
         ctx2.drawImage(
           overlayCanvas,
-          -offX, -offY, canvas.width, canvas.height,
+          -offX * srcScale, -offY * srcScale,
+          canvas.width * srcScale, canvas.height * srcScale,
           0, 0, canvas.width, canvas.height
         );
       }
